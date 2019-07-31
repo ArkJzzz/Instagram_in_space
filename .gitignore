@@ -1,0 +1,8 @@
+.env
+test.py
+*.txt
+*.checkpoint
+*.log
+images/
+__pycache__/
+env/
