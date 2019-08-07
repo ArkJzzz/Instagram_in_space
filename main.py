@@ -28,8 +28,6 @@ from fetch_hubble import fetch_hubble_collection
 from resize_photos import resize_image
 
 
-# logging.basicConfig(format = u'[DEBUG: LINE:%(lineno)d]#  %(message)s', level = logging.DEBUG)
-
 
 def main():
 
@@ -73,17 +71,17 @@ def main():
 
 
     for image in os.listdir(img_dir):
-            if isfile(joinpath(img_dir, image)):  #os.path.isfile(path) - является ли путь файлом
-                try:
-                    resize_image(img_dir, image)
-                    path = joinpath(img_dir, image)
-                    os.remove(path)
-                except Exception as e:
-                    pass
+        if isfile(joinpath(img_dir, image)):
+            try:
+                resize_image(img_dir, image)
+                path = joinpath(img_dir, image)
+                os.remove(path)
+            except Exception as e:
+                pass
 
 
     for image in os.listdir(img_dir):
-        if isfile(joinpath(img_dir, image)):  #os.path.isfile(path) - является ли путь файлом
+        if isfile(joinpath(img_dir, image)):
             try:
                 os.chdir(img_dir)
                 bot.upload_photo(image)
