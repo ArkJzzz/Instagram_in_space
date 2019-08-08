@@ -30,26 +30,25 @@ def fetch_hubble_image_url(hubble_img_id):
 
     hubble_files = response.json()
     hubble_files = hubble_files['image_files']
-    hubble_image = {}
     hubble_images = []
 
     for hubble_file in hubble_files:
-        extension = (hubble_file['file_url'].split('/')[-1]).split('.')[-1]
+        network_filename = hubble_file['file_url'].split('/')[-1]
+        extension = network_filename.split('.')[-1]
         if extension in ['jpg', 'png', 'gif']:
-            hubble_image['file_size'] = hubble_file['file_size']
-            hubble_image['file_url'] = hubble_file['file_url']
+            hubble_image = {
+                'file_size': hubble_file['file_size'],
+                'file_url': hubble_file['file_url']   
+            }
             hubble_images.append(hubble_image)
-
-    file_sizes = []
-
+    
     try:
-        for hubble_image in hubble_images:
-            file_sizes.append(hubble_image['file_size'])
+        file_sizes = [hubble_image['file_size'] for hubble_image in hubble_images]
         max_size = max(file_sizes)
+
         for hubble_image in hubble_images:
             if hubble_image['file_size'] == max_size:
-                hubble_image_url = hubble_image['file_url']
-            return hubble_image_url
+                return hubble_image['file_url'] 
     except Exception:
         logging.error('файлов .jpg, .png или .gif не найдено')
 
@@ -72,10 +71,12 @@ def fetch_hubble_collection(collection_name):
     
 
     for hubble_image in hubble_images_list:
-        hubble_collection_image = {}
-        hubble_collection_image['description'] = hubble_image['name']
-        hubble_collection_image['id'] = hubble_image['id']
-        hubble_collection_image['url'] = 'https:{url}'.format(url=fetch_hubble_image_url(hubble_image['id']))
+        hubble_collection_image = {
+            'description': hubble_image['name'],
+            'id': hubble_image['id'],
+            'url': 'https:{url}'.format(url=fetch_hubble_image_url(hubble_image['id']))
+        }
+
         hubble_collection.append(hubble_collection_image)
 
     return hubble_collection
