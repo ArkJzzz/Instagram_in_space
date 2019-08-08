@@ -14,11 +14,8 @@ import sys
 import argparse
 import logging
 
-logging.basicConfig(format = u'[LINE:%(lineno)d]#  %(message)s', level = logging.DEBUG)
 
-
-
-def download_picture(url, directory, filename=None):
+def download_picture(url, directory='images', filename=None):
     '''
     Функция принимает на вход url картинки и путь, куда её сохранить, а затем скачивает эту картинку.
     '''
@@ -27,16 +24,11 @@ def download_picture(url, directory, filename=None):
     logging.debug(directory)
     logging.debug(filename)
 
-    if not directory:
-        directory = 'images'
+    network_filename = url.split('/')[-1]
+    extension = network_filename.split('.')[-1]
 
-
-    if filename != None:
-        filename = filename
-    else:
-        filename = (url.split('/')[-1]).split('.')[-2]
-
-    extension = (url.split('/')[-1]).split('.')[-1]
+    if filename == None:
+        filename = network_filename.split('.')[-2]
 
     file_path = '{directory}/{filename}.{extension}'.format(
         directory=directory, 
@@ -46,10 +38,7 @@ def download_picture(url, directory, filename=None):
 
     logging.debug(file_path)
 
-    try:
-        os.makedirs(os.path.dirname(file_path))
-    except FileExistsError:
-        print('directory already exists')
+    os.makedirs(os.path.dirname(file_path, exist_ok=True))
     response = requests.get(url, verify=False)
     with open(file_path, 'wb') as file:
         file.write(response.content)
@@ -57,6 +46,8 @@ def download_picture(url, directory, filename=None):
  
 
 def main():
+    logging.basicConfig(format = u'%(levelname)s [LINE:%(lineno)d]#  %(message)s', level = logging.DEBUG)
+
     parser = argparse.ArgumentParser(
         description='Программа принимает на вход url картинки, директорию, куда её сохранить и опционально имя файла, а затем скачивает эту картинку'
         )
