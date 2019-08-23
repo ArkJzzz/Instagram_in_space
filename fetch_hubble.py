@@ -28,19 +28,24 @@ def fetch_hubble_image_url(hubble_img_id):
         )
     response = requests.get(hubble_img_url, verify=False)
 
-    hubble_files = response.json()
-    hubble_files = hubble_files['image_files']
-    hubble_images = []
+    try:
+        response.raise_for_status()
+    except HTTPError:
+        logging.error('HTTPError: Not Found', exc_info=True)
+    else:
+        hubble_files = response.json()
+        hubble_files = hubble_files['image_files']
+        hubble_images = []
 
-    for hubble_file in hubble_files:
-        network_filename = hubble_file['file_url'].split('/')[-1]
-        extension = network_filename.split('.')[-1]
-        if extension in ['jpg', 'png', 'gif']:
-            hubble_image = {
-                'file_size': hubble_file['file_size'],
-                'file_url': hubble_file['file_url']   
-            }
-            hubble_images.append(hubble_image)
+        for hubble_file in hubble_files:
+            network_filename = hubble_file['file_url'].split('/')[-1]
+            extension = network_filename.split('.')[-1]
+            if extension in ['jpg', 'png', 'gif']:
+                hubble_image = {
+                    'file_size': hubble_file['file_size'],
+                    'file_url': hubble_file['file_url']   
+                }
+                hubble_images.append(hubble_image)
     
     try:
         file_sizes = [hubble_image['file_size'] for hubble_image in hubble_images]
@@ -49,8 +54,8 @@ def fetch_hubble_image_url(hubble_img_id):
         for hubble_image in hubble_images:
             if hubble_image['file_size'] == max_size:
                 return hubble_image['file_url'] 
-    except Exception:
-        logging.error('файлов .jpg, .png или .gif не найдено')
+    except FileNotFoundError:     
+        logging.error('файлов .jpg, .png или .gif не найдено', exc_info=True)
 
 
 def download_hubble_image(directory, hubble_img_url):
@@ -82,6 +87,8 @@ def fetch_hubble_collection(collection_name):
     return hubble_collection
 
 def main():
+    logging.basicConfig(format = u'%(levelname)s [LINE:%(lineno)d]#  %(message)s', level = logging.DEBUG)
+
     parser = argparse.ArgumentParser(
         description='Программа скачивает фотографии, сделанные телескопом HUBBLE, нужно указать коллекцию и папку, куда скачать'
         )

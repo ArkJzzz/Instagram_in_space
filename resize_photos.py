@@ -13,38 +13,32 @@ import argparse
 from os.path import join as joinpath
 from PIL import Image
 
-logging.basicConfig(format = u'%(levelname)s [LINE:%(lineno)d]#  %(message)s', level = logging.DEBUG)
-
 
 def resize_image(directory, filename):
-    current_size = (1024, 1024)
+    target_size = (1024, 1024)
     extention = 'jpg'
 
     logging.debug('directory: %s' % directory)
     logging.debug('filename: %s' % filename)
 
-    try:
-        original = Image.open(joinpath(directory, filename))
-    except FileNotFoundError:
-        logging.error('Error: cannot found file: %s' % filename)
-    except OSError:
-        logging.error('Error: cannot identify image file: %s' % filename)
-    else:
-        original.thumbnail(current_size, Image.ANTIALIAS)
+    original = Image.open(joinpath(directory, filename))
+    original.thumbnail(target_size, Image.ANTIALIAS)
 
-        resized_filename = '{img_filename}-{width}x{hight}.{extention}'.format(
-            img_filename = filename.split('.')[-2],
-            width = original.size[0],
-            hight = original.size[1],
-            extention = extention
-            )
-        resized_filename = joinpath(directory, resized_filename)
-        logging.debug('resized_filename: %s' % resized_filename)
+    resized_filename = '{img_filename}-{width}x{hight}.{extention}'.format(
+        img_filename = filename.split('.')[-2],
+        width = original.size[0],
+        hight = original.size[1],
+        extention = extention
+        )
+    resized_filename = joinpath(directory, resized_filename)
+    logging.debug('resized_filename: %s' % resized_filename)
 
-        original.save(resized_filename)
+    original.save(resized_filename)
 
 
 def main():
+    logging.basicConfig(format = u'%(levelname)s [LINE:%(lineno)d]#  %(message)s', level = logging.DEBUG)
+
     parser = argparse.ArgumentParser(
         description='Программа изменяет размер изображения, укажите директорию и имя файла'
         )
@@ -55,9 +49,12 @@ def main():
 
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     img_dir = joinpath(BASE_DIR, args.d)
+    filename = args.n
 
-    resize_image(img_dir, args.n)
-
+    try: 
+        resize_image(img_dir, filename)
+    except FileNotFoundError:
+        logging.error('Error: file or dirrectory not found', exc_info=True)
 
 if __name__ == "__main__":
     main()

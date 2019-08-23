@@ -18,6 +18,7 @@ import requests
 import os
 import logging
 import time
+import argparse
 from os.path import isfile
 from os.path import join as joinpath
 from dotenv import load_dotenv
@@ -33,6 +34,8 @@ def main():
 
     # init
 
+    logging.basicConfig(format = u'[LINE:%(lineno)d]#  %(message)s', level = logging.DEBUG)
+
     load_dotenv()
     insta_login = os.getenv("INSTA_LOGIN")
     insta_password = os.getenv("INSTA_PASSWORD")
@@ -41,19 +44,33 @@ def main():
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     img_dir = joinpath(BASE_DIR, 'images')
 
-    hubble_collection_names = [
-        # 'holiday_cards'
-        'wallpaper'
-        # 'spacecraft',
-        # 'news',
-        # 'printshop',
-        # 'stsci_gallery'
-        ]
+    parser = argparse.ArgumentParser(
+        description='Программа автоматизирует сбор фотографий космоса и публикует их в соцсеть Instagram.'
+        )
+
+    parser.add_argument(
+        '-t', 
+        '--timeout', 
+        type=int, 
+        default=2, 
+        help='задержка между публикациями изображений в Instagram (по умолчанию 2 часа)'
+    )
+    parser.add_argument(
+        '-c', 
+        '--collections', 
+        nargs='*', 
+        default='wallpaper', 
+        help='введите имена коллекций Hubble (holiday_cards wallpaper spacecraft news printshop stsci_gallery)'
+    )
+
+    args = parser.parse_args()
+
+    timeout = 60 * 60 * args.timeout
+    hubble_collection_names = [args.collections]
+
 
     bot = Bot()
     bot.login(username=insta_login, password=insta_password)
-
-    timeout = 60 * 60 * 2 # 2 часа
 
 
     # do
@@ -74,10 +91,11 @@ def main():
         if isfile(joinpath(img_dir, image)):
             try:
                 resize_image(img_dir, image)
+            except FileNotFoundError:
+                logging.error('Error: file or dirrectory not found', exc_info=True)
+            else:
                 path = joinpath(img_dir, image)
                 os.remove(path)
-            except Exception as e:
-                pass
 
 
     for image in os.listdir(img_dir):
@@ -85,8 +103,9 @@ def main():
             try:
                 os.chdir(img_dir)
                 bot.upload_photo(image)
-            except Exception:
-                continue
+            except FileNotFoundError:
+                logging.error('Error: file or dirrectory not found', exc_info=True)
+
 
         time.sleep(timeout)
 

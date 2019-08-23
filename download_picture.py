@@ -38,10 +38,16 @@ def download_picture(url, directory='images', filename=None):
 
     logging.debug(file_path)
 
-    os.makedirs(os.path.dirname(file_path, exist_ok=True))
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
     response = requests.get(url, verify=False)
-    with open(file_path, 'wb') as file:
-        file.write(response.content)
+
+    try:
+        response.raise_for_status()
+    except HTTPError:
+        logging.error('HTTPError: Not Found', exc_info=True)
+    else:    
+        with open(file_path, 'wb') as file:
+            file.write(response.content)
 
  
 
