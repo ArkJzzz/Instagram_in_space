@@ -40,14 +40,10 @@ def download_picture(url, directory='images', filename=None):
 
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     response = requests.get(url, verify=False)
+    response.raise_for_status()
 
-    try:
-        response.raise_for_status()
-    except HTTPError:
-        logging.error('HTTPError: Not Found', exc_info=True)
-    else:    
-        with open(file_path, 'wb') as file:
-            file.write(response.content)
+    with open(file_path, 'wb') as file:
+        file.write(response.content)
 
  
 
@@ -62,7 +58,10 @@ def main():
     parser.add_argument('-n', '--filename', help='имя файла')
     args = parser.parse_args()
 
-    download_picture(args.url, args.directory, args.filename)
+    try:
+        download_picture(args.url, args.directory, args.filename)
+    except HTTPError:
+        logging.error('HTTPError: Not Found', exc_info=True)
 
 
 if __name__ == "__main__":

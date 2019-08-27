@@ -75,16 +75,20 @@ def main():
 
     # do
 
-    fetch_spacex_last_launch(img_dir)
+    try:
+        fetch_spacex_last_launch(img_dir)
 
-    for collection_name in hubble_collection_names:
-        hubble_collection = fetch_hubble_collection(collection_name)
+        for collection_name in hubble_collection_names:
+            hubble_collection = fetch_hubble_collection(collection_name)
 
-        for image in hubble_collection:
-            hubble_url = image['url']
-            hubble_filename = 'hubble-{id}'.format(id=image['id'])
+            for image in hubble_collection:
+                hubble_url = image['url']
+                hubble_filename = 'hubble-{id}'.format(id=image['id'])
 
-            download_picture(hubble_url, img_dir, hubble_filename)
+                download_picture(hubble_url, img_dir, hubble_filename)
+
+    except HTTPError:
+        logging.error('HTTPError: Not Found', exc_info=True)
 
 
     for image in os.listdir(img_dir):
@@ -107,7 +111,7 @@ def main():
                 logging.error('Error: file or dirrectory not found', exc_info=True)
 
 
-        time.sleep(timeout)
+    time.sleep(timeout)
 
 
 

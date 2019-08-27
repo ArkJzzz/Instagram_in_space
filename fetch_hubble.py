@@ -27,25 +27,21 @@ def fetch_hubble_image_url(hubble_img_id):
         hubble_img_id=hubble_img_id
         )
     response = requests.get(hubble_img_url, verify=False)
+    response.raise_for_status()
 
-    try:
-        response.raise_for_status()
-    except HTTPError:
-        logging.error('HTTPError: Not Found', exc_info=True)
-    else:
-        hubble_files = response.json()
-        hubble_files = hubble_files['image_files']
-        hubble_images = []
+    hubble_files = response.json()
+    hubble_files = hubble_files['image_files']
+    hubble_images = []
 
-        for hubble_file in hubble_files:
-            network_filename = hubble_file['file_url'].split('/')[-1]
-            extension = network_filename.split('.')[-1]
-            if extension in ['jpg', 'png', 'gif']:
-                hubble_image = {
-                    'file_size': hubble_file['file_size'],
-                    'file_url': hubble_file['file_url']   
-                }
-                hubble_images.append(hubble_image)
+    for hubble_file in hubble_files:
+        network_filename = hubble_file['file_url'].split('/')[-1]
+        extension = network_filename.split('.')[-1]
+        if extension in ['jpg', 'png', 'gif']:
+            hubble_image = {
+                'file_size': hubble_file['file_size'],
+                'file_url': hubble_file['file_url']   
+            }
+            hubble_images.append(hubble_image)
     
     try:
         file_sizes = [hubble_image['file_size'] for hubble_image in hubble_images]
@@ -96,14 +92,15 @@ def main():
     parser.add_argument('collection', help='куда сохранять')
     args = parser.parse_args()
 
-    logging.debug('main():')
     logging.debug(args.directory)
     logging.debug(args.collection)
 
-
-    collection = fetch_hubble_collection(args.collection)
-    for image in collection:
-    	print(image['url'])
+    try:
+        collection = fetch_hubble_collection(args.collection)
+        for image in collection:
+            download_hubble_image(args.directory, image['url'])
+    except HTTPError:
+        logging.error('HTTPError: Not Found', exc_info=True)
     
 
 if __name__ == "__main__":
